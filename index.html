@@ -1,0 +1,121 @@
+<html>
+	<header>
+		<title>Chat APP</title>
+		<style>
+			#app{
+				width:300px;
+				height:500px;
+				border:1px solid grey;
+				border-radius: 10px 10px 10px 10px;
+				position:relative;
+			}
+			#topbar{
+				width:inherit;
+				height:50px;
+				background:grey;
+				border-radius:10px 10px 0 0;
+				display:flex;
+			}
+			#bottombar{
+				width:inherit;
+				height:50px;
+				background:white;
+				border:1px solid grey;
+				border-radius:0 0 10px 10px;
+				position:absolute;
+				bottom:0px;
+				display:flex;
+			}
+			#chat{
+				flex:70%;
+				height:50px;
+			}
+			#typing{
+				width:inherit;
+				margin:10px auto auto 10px;
+			}
+			#send{
+				flex:30%;
+				height:50px;
+				background:grey;
+				border-radius:0 0 10px 0;
+			}
+			#sendnow{
+				margin:15px auto 15px auto;
+				background:white;
+				border-radius:5px 5px 5px 5px;
+				width:50px;
+				cursor:pointer;
+			}
+			#number{
+				flex:20%;
+				height:50px;
+			}
+			#users{
+				flex:80%;
+				height:50px;
+			}
+			#circle{
+				width:30px;
+				height:30px;
+				background:white;
+				border-radius:50% 50% 50% 50%;
+				margin:10px auto auto 10px;
+				text-align:center;
+				line-height:30px;
+			}
+		</style>
+	</header>
+	<body>
+		<div id="app">
+			<div id="topbar">
+				<div id="number">
+					<div id="circle">
+					</div>
+				</div>
+				<div id="users">
+				</div>
+			</div>
+			<div id="message">
+			</div>
+			<div id="bottombar">
+				<div id="chat">
+					<input type="text" id="typing"></input>
+				</div>
+				<div id="send">
+					<div id="sendnow">
+						SEND
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script type="module">
+			import { webpeerjs } from 'webpeerjs'
+			void async function main(){
+				const node = await webpeerjs.createWebpeer()
+				console.log(`My node id : ${node.id}`)
+				const [broadcast,listen,members] = node.joinRoom('globalroom')
+				listen((message,id) => {
+					console.log(`Message from ${id} : ${message}`)
+					const shortid = id.slice(-5)
+					document.getElementById('message').innerHTML += '<br>'+`Message from ${shortid} : ${message}`
+				})
+				members((data) => {
+					console.log(`Members : ${data}`)
+					document.getElementById('circle').innerHTML = data.length
+					broadcast('hello')
+				})
+
+				document.getElementById('sendnow').onclick = function(){
+	const msg = document.getElementById('typing').value
+	document.getElementById('message').innerHTML += '<br>me :'+msg
+	document.getElementById('typing').value = ''
+	broadcast(msg)
+	
+}
+				
+			}()
+		</script>
+	</body>
+</html>
