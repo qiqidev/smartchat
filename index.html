@@ -91,31 +91,57 @@
 		</div>
 
 		<script type="module">
-			import { webpeerjs } from 'webpeerjs'
-			void async function main(){
-				const node = await webpeerjs.createWebpeer()
-				console.log(`My node id : ${node.id}`)
-				const [broadcast,listen,members] = node.joinRoom('globalroom')
-				listen((message,id) => {
-					console.log(`Message from ${id} : ${message}`)
-					const shortid = id.slice(-5)
-					document.getElementById('message').innerHTML += '<br>'+`Message from ${shortid} : ${message}`
-				})
-				members((data) => {
-					console.log(`Members : ${data}`)
-					document.getElementById('circle').innerHTML = data.length
-					broadcast('hello')
-				})
+			import {joinRoom,selfId} from 'trystero'
 
-				document.getElementById('sendnow').onclick = function(){
-	const msg = document.getElementById('typing').value
-	document.getElementById('message').innerHTML += '<br>me :'+msg
-	document.getElementById('typing').value = ''
-	broadcast(msg)
-	
-}
-				
-			}()
+			const config = {appId : 'smartchat'}
+
+			const room = joinRoom(config, 'testingtesting')
+
+			room.onPeerJoin(peerId => {
+				console.log(`${peerId} joined`)
+				users.push(peerId)
+				console.log(`isi users ${users}`)
+				document.getElementById('circle').innerHTML = users.length
+				sendChat('halo',peerId)
+			})
+
+			room.onPeerLeave(peerId => {
+				console.log(`${peerId} left`)
+				let usersmasihada = []
+				for(const data of users){
+					if(data == peerId){
+						continue
+					}else{
+						usersmasihada.push(data)
+					}
+				}
+				users = usersmasihada
+				document.getElementById('circle').innerHTML = users.length
+			})
+
+			const myid = selfId
+
+			console.log(`myid ${myid}`)
+
+			let users = [myid]
+
+			const [sendChat,getChat] = room.makeAction('chat')
+
+			getChat((data,peerId) => {
+				console.log(`ada pesan dari ${peerId} : data`)
+				const shortid = peerId.slice(-4)
+				document.getElementById('message').innerHTML += `<br>Message from ${shortid} : ${data}`
+			})
+
+			document.getElementById('sendnow').onclick = function(){
+				const msg = document.getElementById('typing').value
+				for(const id of users){
+					sendChat(msg,id)
+				}
+				document.getElementById('message').innerHTML += `<br>Me : ${msg}`
+				document.getElementById('typing').value = ''
+			}
+
 		</script>
 	</body>
 </html>
